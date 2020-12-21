@@ -63,7 +63,7 @@ After more fully connected layers, the final output is a vector of binary probab
 - Cardiomegaly
 - Infiltration
 - Nodule
-- Pleural\_Thickening
+- Pleural Thickening
 - Edema
 - Atelectasis
 - Effusion
@@ -82,36 +82,105 @@ During inference, we select from these only the pneumonia probability.
 ### 3. Algorithm Training
 
 **Parameters:**
-* Types of augmentation used during training
-* Batch size
-* Optimizer learning rate
-* Layers of pre-existing architecture that were frozen
-* Layers of pre-existing architecture that were fine-tuned
-* Layers added to pre-existing architecture
 
-<< Insert algorithm training performance visualization >> 
+Image data was augmented by scaling, rotating, zooming, and shifting by random small amounts.
 
-<< Insert P-R curve >>
+The output of the model is not a single probability distribution but
+rather a list of probabilities of binary variables.
+For training, a binary cross entropy loss is computed for each of these variables.
+The binary cross entropy losses are then combined by taking a weighted mean, with the weighting
+making the pneumonia probability loss more important than other radiologist finding labels.
+This weighted mean is the loss that was used for training the model.
+
+An Adam optimizer was used with a learning rate of 0.0001.
+
+The fully connected layers that were added to the end of the model were trainiable, and the pre-existing VGG16
+convolutional layers above were all frozen.
+No layers were fine-tuned.
+
+Below is a training history; note that training and validation losses are computed differently and should not be compared to each other.
+
+![Training history](training_loss.png)
+
+Here is a precision-recall curve, which summarizes the possible tradeoffs one can
+get by choosing various thresholds:
+
+![Precision-recall curve](pr.png)
 
 **Final Threshold and Explanation:**
 
+The final threshold chosen is 0.45.
+That is, the model will give a positive pneumonia result when the probability it outputs exceeds 0.45.
+
+This was determined by optimizing an F\_2 score.
+This means that we consider sensitivity to be twice as important as recall, and we find the threshold
+that yields the best balance in that context.
+
+This threshold gives our model a sensitivity of 0.85,
+with a positive predictive value of 0.12.
+
+
 ### 4. Databases
- (For the below, include visualizations as they are useful and relevant)
 
-**Description of Training Dataset:** 
+**Training and Validation Datasets:**
 
+The dataset consists of anonymized chest X-rays from real patients.
+Since the original NIH dataset contains only 1145 positive pneumonia cases,
+the training dataset for each epoch contains twice that: 2290 images.
+This way, the model sees positive and negative pneumonia cases with equal frequency.
+However we do replace the 1145 negative cases after each epoch, sampling randomly from
+the pool of 110,975 negative cases.
 
-**Description of Validation Dataset:** 
+The validation set consists of 2860 images, of which 286 are positive cases.
+
+The distribution of patient ages and sexes is the same as it was for the original NIH dataset.
+
+**Description of Population in Datasets:**
+
+Both patient sexes are sufficiently represented:
+
+![](sexes.png)
+
+Two X-ray orientations are represented in the original NIH dataset:
+
+![](orientations.png)
+
+Here is a visualization of the frequency with which each radiologist finding label apears in the NIH dataset:
+
+![](casecounts.png)
+
+Selecting only the positive pneumonia cases out of this, we can look at the co-occurance of other findings with pneumonia:
+
+![](casecounts2.png)
 
 
 ### 5. Ground Truth
+
+The ground truth labels are not based on a gold standard of actual patient biopsies,
+but rather a silver standard of radiologist labels.
+There is a further limitation:
+the labels were extracted from written radiology reports using NLP.
+The team that extracted the labels estimates accuracy to be over 90%.
 
 
 
 ### 6. FDA Validation Plan
 
 **Patient Population Description for FDA Validation Dataset:**
+We would request from our clinical partner a collection of chest X-rays in either the AP or the PA oriention.
+Patient age range should be about 20-70, and there should be sufficient representation of both
+male and female patients. Positive pneumonia cases are the most desirable finding for the dataset,
+but other findings will also be useful. Chest X-rays should be provided in DICOM format,
+or a different image format with the following associated metadata: patient sex and xray orientation.
 
 **Ground Truth Acquisition Methodology:**
 
+Since the intended use is to aid a radiologist in their investigation, radiologist labels should be
+a sufficient source of ground truth.
+
 **Algorithm Performance Standard:**
+
+We will run the model on the new validation dataset and obtain a pneomonia probability for each X-ray.
+We will then compute the optimal F1 score.
+If this is comparable to or greater than 0.435, then we will say our model performing up to standards;
+the F1 score 0.435 is the performance of CheXNet [found here](https://arxiv.org/pdf/1711.05225.pdf).
