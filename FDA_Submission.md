@@ -41,12 +41,15 @@ Here is an overview, with details below.
 **DICOM Checking Steps:**
 Given a DICOM file, we first verify that it is a chest X-ray
 taken in one of the valid X-ray orientations for the model.
+We do this by checking the DICOM fields _Modality_, _Body Part Examined_, and _Patient Position_.
 We extract from the DICOM file the raw image pixel data as well as
 some metadata: the patient sex and the X-ray orientation.
 
 **Preprocessing Steps:**
 The raw image data from the DICOM file comes in the form of grayscale pixel values.
 This is converted to RGB and resized to 224 by 224 pixels using nearest neighbor interpolation.
+No normalization is applied to the pixel intensities, since the ImageNet data that VGG16 was trained on 
+was also not normalized.
 
 **CNN Architecture:**
 There are two parts: convolutional layers followed by fully connected layers.
@@ -83,7 +86,12 @@ During inference, we select from these only the pneumonia probability.
 
 **Parameters:**
 
-Image data was augmented by scaling, rotating, zooming, and shifting by random small amounts.
+Image data was augmented by scaling, rotating, zooming, and shifting by random small amounts:
+
+- Images were rotated by up to $\pm 15^\circ$.
+- Images were shifted horizantally and vertically by up to 20% of their size.
+- Images were zoomed by a factor of 0.8 to 1.2.
+
 
 The output of the model is not a single probability distribution but
 rather a list of probabilities of binary variables.
@@ -109,15 +117,15 @@ get by choosing various thresholds:
 
 **Final Threshold and Explanation:**
 
-The final threshold chosen is 0.45.
+The final threshold chosen is 0.48.
 That is, the model will give a positive pneumonia result when the probability it outputs exceeds 0.45.
 
 This was determined by optimizing an F\_2 score.
 This means that we consider sensitivity to be twice as important as recall, and we find the threshold
 that yields the best balance in that context.
 
-This threshold gives our model a sensitivity of 0.85,
-with a positive predictive value of 0.12.
+This threshold gives our model a sensitivity of 0.81,
+with a positive predictive value of 0.14.
 
 
 ### 4. Databases
@@ -183,4 +191,4 @@ a sufficient source of ground truth.
 We will run the model on the new validation dataset and obtain a pneomonia probability for each X-ray.
 We will then compute the optimal F1 score.
 If this is comparable to or greater than 0.435, then we will say our model performing up to standards;
-the F1 score 0.435 is the performance of CheXNet [found here](https://arxiv.org/pdf/1711.05225.pdf).
+the F1 score 0.435 is the performance of CheXNet [**found here**](https://arxiv.org/pdf/1711.05225.pdf).
