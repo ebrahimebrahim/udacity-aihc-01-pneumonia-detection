@@ -23,7 +23,7 @@ It could also be used to adjust the order of a radiologist's queue of chest X-ra
 such that patients whose situation is more likely to be urgent get their report sooner.
 
 **Device Limitations:**
-This algorithm should not be used with patients who are under the age of 12 or over the age of 80.
+This algorithm should not be used with patients who are under the age of 15 or over the age of 75.
 It should not be used on chest X-rays that are not of either AP or PA orientation,
 and it should not be used on any body parts besides the chest.
 
@@ -176,7 +176,7 @@ The team that extracted the labels estimates accuracy to be over 90%.
 
 **Patient Population Description for FDA Validation Dataset:**
 We would request from our clinical partner a collection of chest X-rays in either the AP or the PA oriention.
-Patient age range should be about 20-70, and there should be sufficient representation of both
+Patient age range should be about 15-75, and there should be sufficient representation of both
 male and female patients. Positive pneumonia cases are the most desirable finding for the dataset,
 but other findings will also be useful. Chest X-rays should be provided in DICOM format,
 or a different image format with the following associated metadata: patient sex and xray orientation.
@@ -190,5 +190,9 @@ a sufficient source of ground truth.
 
 We will run the model on the new validation dataset and obtain a pneomonia probability for each X-ray.
 We will then compute the optimal F1 score.
-If this is comparable to or greater than 0.435, then we will say our model performing up to standards;
-the F1 score 0.435 is the performance of CheXNet [**found here**](https://arxiv.org/pdf/1711.05225.pdf).
+If this is comparable to or greater than 0.387, then we will say our model performing up to standards;
+the F1 score 0.387 is the average performance of radiologists found in (Rajpurkar et al. 2017). 
+
+# References
+
+[Pranav Rajpurkar, et al. "CheXNet: Radiologist-Level Pneumonia Detection on Chest X-Rays with Deep Learning." (2017).](https://arxiv.org/pdf/1711.05225.pdf)
