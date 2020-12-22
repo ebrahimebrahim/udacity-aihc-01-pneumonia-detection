@@ -13,7 +13,7 @@ Deep Learning Algorithm for Pneumonia Detection
 **Intended Use Statement:** 
 This algorithm is used to assist a radiologist in determining whether
 a chest X-ray shows signs of pneumonia.
-It is intended for use with patients of ages 20-70
+It is intended for use with patients of ages 15-75
 who have received a chest X-ray in either the anterior-posterior
 or the posterior-anterior X-ray orientation.
 
